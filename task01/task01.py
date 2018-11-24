@@ -75,40 +75,53 @@ def to_row_echelon_form(m):
     return actions
 
 
-def solve(matrix, free_column):
-    actions = to_row_echelon_form(matrix)
+def apply_actions_to_column(column, actions):
     for action in actions:
         if isinstance(action, Swap) and action.swap_type == 'row':
-            free_column[action.first], free_column[action.second] = \
-                free_column[action.second], free_column[action.first]
+            column[action.first], column[action.second] = \
+                column[action.second], column[action.first]
         elif isinstance(action, RawAddition):
-            free_column[action.target] += action.coefficient * \
-                                          free_column[action.source]
+            column[action.target] += action.coefficient * column[action.source]
+
+
+def solve(matrix, free_column):
+    actions = to_row_echelon_form(matrix)
+    apply_actions_to_column(free_column, actions)
 
     col_num = len(matrix[0])
     row_num = len(matrix)
     solution = [None] * col_num
     for row in range(row_num - 1, -1, -1):
         new_vars = 0
-        left_sum = 0
-        new_var_pos = 0
+        left_sum = Fraction(0)
+        new_var_pos = col_num
         for column in range(col_num):
             if matrix[row][column] != 0:
                 if solution[column] is None:
                     new_vars += 1
-                    new_var_pos = column
+                    new_var_pos = min(column, new_var_pos)
                 else:
                     left_sum += solution[column] * matrix[row][column]
 
         if new_vars == 0 and left_sum != free_column[row]:
             raise ValueError('the equation has no solution')
-        if new_vars > 1:
-            raise ValueError('the equation has more then one solution')
-        if new_vars == 0:
-            continue
+        elif new_vars == 1:
+            solution[new_var_pos] = (free_column[row] - left_sum) / matrix[row][
+                new_var_pos]
+        elif new_vars > 1:
+            solution[new_var_pos] = []
+            for column in range(col_num):
+                if column == new_var_pos:
+                    solution[new_var_pos].append(Fraction(0))
+                    continue
 
-        solution[new_var_pos] = (free_column[row] - left_sum) / matrix[row][
-            new_var_pos]
+                if matrix[row][column] != 0 and solution[column] is None:
+                    solution[new_var_pos].append(
+                        -matrix[row][column] / matrix[row][new_var_pos])
+                else:
+                    solution[new_var_pos].append(Fraction(0))
+            solution[new_var_pos].append(
+                (free_column[row] - left_sum) / matrix[row][new_var_pos])
 
     for action in reversed(actions):
         if isinstance(action, Swap) and action.swap_type == 'column':
