@@ -91,6 +91,7 @@ def apply_actions_to_column(column, actions):
 
 
 def solve(matrix, free_column):
+    check_equation(matrix, free_column)
     actions = to_row_echelon_form(matrix)
     apply_actions_to_column(free_column, actions)
 
