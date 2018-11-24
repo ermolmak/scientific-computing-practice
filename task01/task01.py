@@ -6,19 +6,26 @@ RowAddition = namedtuple('RowAddition', ['source', 'target', 'coefficient'])
 MaxValueWithPlace = namedtuple('MaxValueWithPlace', ['place', 'value'])
 
 
-def check_matrix(m):
-    if not isinstance(m, list):
+def check_equation(matrix, free_column):
+    if not isinstance(matrix, list):
         raise TypeError("matrix must be 'list' of 'list's of 'Fraction's")
-    if len(m) == 0:
+    if len(matrix) == 0:
         raise ValueError('empty matrix')
-    for line in m:
+    for line in matrix:
         if not isinstance(line, list):
             raise TypeError("matrix must be 'list' of 'list's of 'Fraction's")
         if not all(map(lambda x: isinstance(x, Fraction), line)):
             raise TypeError("matrix must be 'list' of 'list's of 'Fraction's")
-    row_len = len(m[0])
-    if row_len == 0 or any(map(lambda x: len(x) != row_len, m)):
+    row_len = len(matrix[0])
+    if row_len == 0 or any(map(lambda x: len(x) != row_len, matrix)):
         raise ValueError('all rows must have constant non-zero length')
+
+    if not isinstance(free_column, list):
+        raise TypeError("free column must be 'list' of 'Fraction's")
+    if len(matrix) != len(free_column):
+        raise ValueError("heights of matrix and free column must be equal")
+    if not all(map(lambda x: isinstance(x, Fraction), free_column)):
+        raise TypeError("free column must be 'list' of 'Fraction's")
 
 
 def swap_rows(m, i, j):
@@ -46,7 +53,6 @@ def find_max(m, start):
 
 
 def to_row_echelon_form(m):
-    check_matrix(m)
     actions = []
     for i in range(min(len(m), len(m[0]))):
         max_elem = find_max(m, i)
