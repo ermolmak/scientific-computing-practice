@@ -86,7 +86,7 @@ def apply_actions_to_column(column, actions):
         if isinstance(action, Swap) and action.swap_type == 'row':
             column[action.first], column[action.second] = \
                 column[action.second], column[action.first]
-        elif isinstance(action, RawAddition):
+        elif isinstance(action, RowAddition):
             column[action.target] += action.coefficient * column[action.source]
 
 
